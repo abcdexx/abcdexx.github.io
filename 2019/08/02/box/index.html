@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+  
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  <meta name="author" content="qt">
+  
+  
+  <title>使用 VirtualBox 制作自己的 Vagrant box | 覃涛的个人博客</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Hexo, Theme-AD">
+  
+
+  
+  <meta name="description" content="覃涛的小站">
+
+  
+
+  
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@3.11.1/dist/av-min.js" async></script>
+  
+
+  
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+  
+
+  
+    <script src="//unpkg.com/valine/dist/Valine.min.js" async></script>
+  
+
+  
+
+  <script>
+  // theme-ad's config script
+  // it can be used in every script
+  
+  window.AD_CONFIG = {
+    leancloud: {"appid":"RSGSDX6mpy0tovY7FcfRbPB5-gzGzoHsz","appkey":"cB66y8LSjGdHvLNmRBxmaiC4","comment":true,"count":true},
+    welcome: {"enable":false,"interval":30},
+    start_time: "2018-02-10",
+    passwords: ["efe07af7441da2b69c4a41e42e73be4db47f66010a56900788a458354a7373ec", ],
+    is_post: true,
+    lock: false,
+    author: "qt",
+    share: {"twitter":true,"facebook":true,"weibo":true,"qq":true,"wechat":true},
+    mathjax: true,
+    page_type: "",
+    root: "/"
+  };
+</script>
+
+  <script src="/vendor/sha256.min.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/index.js"></script>
+<script src="/vendor/qrcode.min.js"></script>
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="/images/touch-icon.png">
+  
+
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/index.css">
+<link rel="stylesheet" href="/styles/components/highlight/highlight.css">
+
+  
+</head>
+  <body>
+    <header class="site-header">
+  <div class="site-header-brand">
+    
+      <span class="site-header-brand-title">
+        <a href="/">与其感慨路难行</a>
+      </span>
+    
+    
+      <span class="site-header-brand-motto"> | 不如马上出发</span>
+    
+  </div>
+  <div class="site-header-right">
+    <nav class="site-header-navigation">
+      
+        <a href="/" target="_self">首页</a>
+      
+        <a href="/archives/" target="_self">归档</a>
+      
+    </nav>
+    <div class="site-header-btn">
+      
+        <a href="https://github.com/abcdexx/" target="_blank" id="site-github">
+          <i class="fa fa-github-alt"></i>
+        </a>
+      
+      <a href="javascript:void(0);" id="site-search">
+        <i class="fa fa-search"></i>
+      </a>
+      <a href="javascript:void(0);" id="site-nav-btn">
+        <i class="fa fa-ellipsis-v"></i>
+      </a>
+    </div>
+  </div>
+</header>
+<nav class="table-content" id="site-nav">
+  <div class="table-content-title">
+    <span>导航</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc">
+      
+        <li class="toc-item">
+          <a href="/" target="_self">
+            首页
+          </a>
+        </li>
+      
+        <li class="toc-item">
+          <a href="/archives/" target="_self">
+            归档
+          </a>
+        </li>
+      
+    </ol>
+  </div>
+</nav>
+<div id="site-process"></div>
+    <main>
+      
+  <div class="passage">
+  <div class="passage-meta">
+    <span>
+      <i class="fa fa-calendar"></i>2019-08-02
+    </span>
+    
+    
+      <span>
+        | <i class="fa fa-unlock-alt"></i>UNLOCK
+      </span>
+    
+  </div>
+  <h1 class="passage-title">
+    使用 VirtualBox 制作自己的 Vagrant box
+  </h1>
+  
+  <article class="passage-article">
+    <h3 id="1-在centos或者ubuntu官网下载新鲜的镜像。-网络不好可以在阿里云或者网易的开源站下载-。"><a href="#1-在centos或者ubuntu官网下载新鲜的镜像。-网络不好可以在阿里云或者网易的开源站下载-。" class="headerlink" title="1. 在centos或者ubuntu官网下载新鲜的镜像。(网络不好可以在阿里云或者网易的开源站下载)。"></a>1. 在<code>centos</code>或者<code>ubuntu</code>官网下载新鲜的镜像。(网络不好可以在阿里云或者网易的开源站下载)。</h3><h3 id="2-在virtualbox中新建虚拟主机，选择自己需要的内存和磁盘大小。"><a href="#2-在virtualbox中新建虚拟主机，选择自己需要的内存和磁盘大小。" class="headerlink" title="2. 在virtualbox中新建虚拟主机，选择自己需要的内存和磁盘大小。"></a>2. 在<code>virtualbox</code>中新建虚拟主机，选择自己需要的内存和磁盘大小。</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/CNk7C1Qsyj.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="3-选择下载的系统镜像，点击启动。"><a href="#3-选择下载的系统镜像，点击启动。" class="headerlink" title="3. 选择下载的系统镜像，点击启动。"></a>3. 选择下载的系统镜像，点击启动。</h3><p>   <img src="https://cdn.learnku.com/uploads/images/201908/02/19945/Nh6gFxEay8.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="4-选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。"><a href="#4-选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。" class="headerlink" title="4. 选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。"></a>4. 选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/KSRdtFUmsb.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="5-设置root密码和创建用户"><a href="#5-设置root密码和创建用户" class="headerlink" title="5.设置root密码和创建用户"></a>5.设置<code>root</code>密码和创建用户</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/w4qTMAqeaY.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="6-重启虚拟机。"><a href="#6-重启虚拟机。" class="headerlink" title="6. 重启虚拟机。"></a>6. 重启虚拟机。</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/ajgI36ueh7.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="7-以root账号登陆虚拟机，首先下载三个工具。yum-install-vim-yum-install-net-tools-yum-install-wget。"><a href="#7-以root账号登陆虚拟机，首先下载三个工具。yum-install-vim-yum-install-net-tools-yum-install-wget。" class="headerlink" title="7. 以root账号登陆虚拟机，首先下载三个工具。yum install vim,yum install net-tools,yum install wget。"></a>7. 以<code>root</code>账号登陆虚拟机，首先下载三个工具。<code>yum install vim</code>,<code>yum install net-tools</code>,<code>yum install wget</code>。</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/5uDkOqcPUv.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="8-现在可以在虚拟机上面安装你需要的lnmp环境和一些redis-swoole-elasticsearch等软件和扩展。"><a href="#8-现在可以在虚拟机上面安装你需要的lnmp环境和一些redis-swoole-elasticsearch等软件和扩展。" class="headerlink" title="8.现在可以在虚拟机上面安装你需要的lnmp环境和一些redis,swoole,elasticsearch等软件和扩展。"></a>8.现在可以在虚拟机上面安装你需要的<code>lnmp</code>环境和一些<code>redis</code>,<code>swoole</code>,<code>elasticsearch</code>等软件和扩展。</h3><h3 id="9-安装完所有的环境和软件后我们需要制作盒子了。执行useradd-vagrant-添加-一个用户，passwd-vagrant给用户设置密码，建议也设置成vagrant"><a href="#9-安装完所有的环境和软件后我们需要制作盒子了。执行useradd-vagrant-添加-一个用户，passwd-vagrant给用户设置密码，建议也设置成vagrant" class="headerlink" title="9.安装完所有的环境和软件后我们需要制作盒子了。执行useradd vagrant 添加 一个用户，passwd vagrant给用户设置密码，建议也设置成vagrant."></a>9.安装完所有的环境和软件后我们需要制作盒子了。执行<code>useradd vagrant</code> 添加 一个用户，<code>passwd vagrant</code>给用户设置密码，建议也设置成<code>vagrant</code>.</h3><p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/i5XX5BJpw2.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="10-配置vagrant账号免密操作。在root下面增加一行-vagrant-ALL-ALL-NOPASSWD-ALL-保存退出。执行chmod-0440-etc-sudoers-恢复默认权限。（默认只读）"><a href="#10-配置vagrant账号免密操作。在root下面增加一行-vagrant-ALL-ALL-NOPASSWD-ALL-保存退出。执行chmod-0440-etc-sudoers-恢复默认权限。（默认只读）" class="headerlink" title="10.配置vagrant账号免密操作。在root下面增加一行 vagrant   ALL=(ALL)    NOPASSWD:ALL 保存退出。执行chmod 0440 /etc/sudoers 恢复默认权限。（默认只读）"></a>10.配置<code>vagrant</code>账号免密操作。在<code>root</code>下面增加一行 <code>vagrant   ALL=(ALL)    NOPASSWD:ALL</code> 保存退出。执行<code>chmod 0440 /etc/sudoers</code> 恢复默认权限。（默认只读）</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod 0777 /etc/sudoers</span><br><span class="line"> </span><br><span class="line">vim /etc/sudoers</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/mEk1bDGdQ6.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="11-配置-ssh登陆"><a href="#11-配置-ssh登陆" class="headerlink" title="11.配置 ssh登陆"></a>11.配置 <code>ssh</code>登陆</h3><p>   执行 <code>yum list installed | grep openssh-server</code> 来坚持是否安装了<code>openssh</code>，如果没有安装请执行<code>yum install openssh-server</code>。
+   执行<code>vim /etc/ssh/sshd_config</code>，画线的行解开注释。保存退出。</p>
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/nVJ33ti7uF.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="12-下载vagrant官网公钥"><a href="#12-下载vagrant官网公钥" class="headerlink" title="12.下载vagrant官网公钥"></a>12.下载vagrant官网公钥</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /home/vagrant &amp;&amp; mkdir .ssh</span><br><span class="line">wget https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub</span><br><span class="line">mv vagrant.pub authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>修改authorized_keys文件权限 除了属主vagrant以外，group和其他用户都不可写</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod go-w /home/vagrant/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h3 id="13-共享目录"><a href="#13-共享目录" class="headerlink" title="13.共享目录"></a>13.共享目录</h3><p>点击设备—-&gt;安装增强功能<br><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/THb4LWxOEw.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<p>执行完毕后关闭虚拟机。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd / &amp;&amp; mkdir cdrom &amp;&amp; mount /dev/cdrom /cdrom</span><br><span class="line">cd  /cdrom &amp;&amp; ./VBoxLinuxAdditions.run</span><br></pre></td></tr></table></figure>
+
+<h3 id="14-配置网络规则"><a href="#14-配置网络规则" class="headerlink" title="14.配置网络规则"></a>14.配置网络规则</h3><p>网卡一<br><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/hggGN9GFR6.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "><br>网卡二</p>
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/qflWegSXEa.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<h3 id="15-导出盒子"><a href="#15-导出盒子" class="headerlink" title="15.导出盒子"></a>15.导出盒子</h3><p>在宿主机上找一块空旷的地方执行下面代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vagrant package --base  virtualbox虚机中的名字 --output  lnmp.box (自己给盒子起的名字)</span><br></pre></td></tr></table></figure>
+
+<h3 id="16-使用自己制作的盒子"><a href="#16-使用自己制作的盒子" class="headerlink" title="16.使用自己制作的盒子"></a>16.使用自己制作的盒子</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vagrant box add centos centos-lnmp.box  (添加盒子)</span><br><span class="line">vagrant init centos (初始化盒子)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/HWRp4YVFAD.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<p>在<code>vagrantfile</code>中打开这一行的注释 <code>config.vm.network &quot;private_network&quot;, ip: &quot;192.168.33.10&quot;</code></p>
+<p>执行<code>vagrant up</code> 如果出现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">default: Warning: Connection reset. Retrying...</span><br><span class="line">   default: Warning: Connection aborted. Retrying...</span><br><span class="line">   default: Warning: Connection reset. Retrying...</span><br><span class="line">   default: Warning: Connection aborted. Retrying...</span><br><span class="line">   default: Warning: Connection reset. Retrying...</span><br><span class="line">   default: Warning: Connection aborted. Retrying...</span><br></pre></td></tr></table></figure>
+
+<p>不要慌，等两分钟他自己挣扎一下就好了（检测到不安全的密钥，vagrant自己会更换），第一次安装会比较慢，多等几分钟。</p>
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/wfLlyDfR70.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<p>然后执行<code>vagrant ssh</code> 顺便执行<code>ifconfig</code>看一下ip地址，没问题的话就可以使用这个地址在<code>shell</code>具上登陆了。</p>
+<p><img src="https://cdn.learnku.com/uploads/images/201908/02/19945/PkBd6WcjxG.png!/fw/1240" alt="使用 virtualbox 制作自己的 vagrant box  "></p>
+<p><a href="htps://blog.csdn.net/qq_39195042/article/details/82702187" target="_blank" rel="noopener">参考地址</a></p>
+
+  </article>
+  <aside class="table-content" id="site-toc">
+  <div class="table-content-title">
+    <i class="fa fa-arrow-right fa-lg" id="site-toc-hide-btn"></i>
+    <span>目录</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-在centos或者ubuntu官网下载新鲜的镜像。-网络不好可以在阿里云或者网易的开源站下载-。"><span class="toc-text">1. 在centos或者ubuntu官网下载新鲜的镜像。(网络不好可以在阿里云或者网易的开源站下载)。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-在virtualbox中新建虚拟主机，选择自己需要的内存和磁盘大小。"><span class="toc-text">2. 在virtualbox中新建虚拟主机，选择自己需要的内存和磁盘大小。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-选择下载的系统镜像，点击启动。"><span class="toc-text">3. 选择下载的系统镜像，点击启动。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。"><span class="toc-text">4. 选择好需要的设置项，点击左下角的网络和主机名，连接以太网，然后点击开始安装。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-设置root密码和创建用户"><span class="toc-text">5.设置root密码和创建用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-重启虚拟机。"><span class="toc-text">6. 重启虚拟机。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-以root账号登陆虚拟机，首先下载三个工具。yum-install-vim-yum-install-net-tools-yum-install-wget。"><span class="toc-text">7. 以root账号登陆虚拟机，首先下载三个工具。yum install vim,yum install net-tools,yum install wget。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-现在可以在虚拟机上面安装你需要的lnmp环境和一些redis-swoole-elasticsearch等软件和扩展。"><span class="toc-text">8.现在可以在虚拟机上面安装你需要的lnmp环境和一些redis,swoole,elasticsearch等软件和扩展。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-安装完所有的环境和软件后我们需要制作盒子了。执行useradd-vagrant-添加-一个用户，passwd-vagrant给用户设置密码，建议也设置成vagrant"><span class="toc-text">9.安装完所有的环境和软件后我们需要制作盒子了。执行useradd vagrant 添加 一个用户，passwd vagrant给用户设置密码，建议也设置成vagrant.</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-配置vagrant账号免密操作。在root下面增加一行-vagrant-ALL-ALL-NOPASSWD-ALL-保存退出。执行chmod-0440-etc-sudoers-恢复默认权限。（默认只读）"><span class="toc-text">10.配置vagrant账号免密操作。在root下面增加一行 vagrant   ALL=(ALL)    NOPASSWD:ALL 保存退出。执行chmod 0440 /etc/sudoers 恢复默认权限。（默认只读）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-配置-ssh登陆"><span class="toc-text">11.配置 ssh登陆</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-下载vagrant官网公钥"><span class="toc-text">12.下载vagrant官网公钥</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-共享目录"><span class="toc-text">13.共享目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-配置网络规则"><span class="toc-text">14.配置网络规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-导出盒子"><span class="toc-text">15.导出盒子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-使用自己制作的盒子"><span class="toc-text">16.使用自己制作的盒子</span></a></li></ol>
+  </div>
+</aside>
+  
+    <aside class="passage-copyright">
+      <div>本文作者: 覃涛</div>
+      
+        <div>
+          原文链接: 
+          <a href="" target="_blank">http://abcdexx.github.io/2019/08/02/box/</a>
+        </div>
+      
+      <div>
+        版权声明: 本博客所有文章除特别声明外, 均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议. 转载请注明出处!
+      </div>
+    </aside>
+  
+  
+</div>
+
+    </main>
+    
+      
+<div class="site-comment-contanier" data-plateform="leancloud">
+  
+    <p id="site-comment-info">
+      <i class="fa fa-spinner fa-spin"></i> 评论加载中
+    </p>
+    <div id="site-comment"></div>
+  
+</div>
+    
+    <div class="site-footer-wrapper">
+  <footer class="site-footer">
+    
+      
+        <div class="site-footer-col">
+          <h5 class="site-footer-title">博客推荐</h5>
+          
+            <span class="site-footer-item">
+              <a href="https://learnku.com/laravel" target="_blank">Laravel-china</a>
+            </span>
+          
+            <span class="site-footer-item">
+              <a href="http://ruanyifeng.com/" target="_blank">阮一峰的个人网站</a>
+            </span>
+          
+        </div>
+      
+    
+    <div class="site-footer-info">
+      <i class="fa fa-clock-o"></i> 本站已稳定运行<span id="site-time"></span>
+    </div>
+    
+      <div class="site-footer-info">
+        <i class="fa fa-paw"></i> 您是本站第 <span id="site-count"></span> 位访客
+      </div>
+    
+    
+      <div class="site-footer-info">
+        <i class="fa fa-at"></i> Email: abcdexx867789@gmail.com
+      </div>
+    
+    <div class="site-footer-info">
+      <i class="fa fa-copyright"></i> 
+      2019 <a href="https://github.com/dongyuanxin/theme-ad/" target="_blank">Theme-AD</a>.
+      Created by <a href="https://godbmw.com/" target="_blank">GodBMW</a>.
+      All rights reserved.
+    </div>
+  </footer>
+</div>
+    <div id="site-layer" style="display:none;">
+  <div class="site-layer-content">
+    <div class="site-layer-header">
+      <span class="site-layer-header-title" id="site-layer-title"></span>
+      <i class="fa fa-close" id="site-layer-close"></i>
+    </div>
+    <div class="site-layer-body" id="site-layer-container">
+      <div class="site-layer-input" id="site-layer-search" style="display: none;">
+        <div class="site-layer-input-choose">
+          <a href="javascript:void(0);" title="Change Search Engine">Google</a>
+        </div>
+        <input type="text">
+        <i class="fa fa-search"></i>
+      </div>
+      
+        <div class="site-layer-reward" id="site-layer-reward" style="display: none;">
+          
+            <div>
+              <img src="/images/wechat.png" alt="WeChat">
+              
+                <p>WeChat</p>
+              
+            </div>
+          
+            <div>
+              <img src="/images/alipay.png" alt="AliPay">
+              
+                <p>AliPay</p>
+              
+            </div>
+          
+        </div>
+      
+      <div id="site-layer-welcome" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+    
+
+<div class="bottom-bar">
+  <div class="bottom-bar-left">
+    <a href="/2019/08/21/Api/" data-enable="true">
+      <i class="fa fa-arrow-left"></i>
+    </a>
+    <a href="/2019/08/01/两数之和/" data-enable="true">
+      <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+  <div class="bottom-bar-right">
+    <a href="javascript:void(0);" data-enable="true" id="site-toc-show-btn">
+      <i class="fa fa-bars"></i>
+    </a>
+    
+      <a href="#site-comment" data-enable="true">
+        <i class="fa fa-commenting"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="site-toggle-share-btn">
+      <i class="fa fa-share-alt"></i>
+    </a>
+    
+      <a href="javascript:void(0);" id="site-reward">
+        <i class="fa fa-thumbs-up"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="back-top-btn">
+      <i class="fa fa-chevron-up"></i>
+    </a>
+  </div>
+</div>
+    <div id="share-btn">
+  
+    <a id="share-btn-twitter" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-twitter"></i>
+    </a>
+  
+  
+    <a id="share-btn-facebook" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-facebook"></i>
+    </a>
+  
+  
+    <a id="share-btn-weibo" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-weibo"></i>
+    </a>
+  
+  
+    <a id="share-btn-qq" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-qq"></i>
+    </a>
+  
+  
+    <a id="share-btn-wechat" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-wechat"></i>
+    </a>
+  
+</div>
+    
+
+
+
+
+
+    
+  </body>
+</html>

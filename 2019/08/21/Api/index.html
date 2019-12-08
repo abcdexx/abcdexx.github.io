@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+  
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  <meta name="author" content="qt">
+  
+  
+  <title>laravel中简单使用elasticsearch | 覃涛的个人博客</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Hexo, Theme-AD">
+  
+
+  
+  <meta name="description" content="覃涛的小站">
+
+  
+
+  
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@3.11.1/dist/av-min.js" async></script>
+  
+
+  
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+  
+
+  
+    <script src="//unpkg.com/valine/dist/Valine.min.js" async></script>
+  
+
+  
+
+  <script>
+  // theme-ad's config script
+  // it can be used in every script
+  
+  window.AD_CONFIG = {
+    leancloud: {"appid":"RSGSDX6mpy0tovY7FcfRbPB5-gzGzoHsz","appkey":"cB66y8LSjGdHvLNmRBxmaiC4","comment":true,"count":true},
+    welcome: {"enable":false,"interval":30},
+    start_time: "2018-02-10",
+    passwords: ["efe07af7441da2b69c4a41e42e73be4db47f66010a56900788a458354a7373ec", ],
+    is_post: true,
+    lock: false,
+    author: "qt",
+    share: {"twitter":true,"facebook":true,"weibo":true,"qq":true,"wechat":true},
+    mathjax: true,
+    page_type: "",
+    root: "/"
+  };
+</script>
+
+  <script src="/vendor/sha256.min.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/index.js"></script>
+<script src="/vendor/qrcode.min.js"></script>
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="/images/touch-icon.png">
+  
+
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/index.css">
+<link rel="stylesheet" href="/styles/components/highlight/highlight.css">
+
+  
+</head>
+  <body>
+    <header class="site-header">
+  <div class="site-header-brand">
+    
+      <span class="site-header-brand-title">
+        <a href="/">与其感慨路难行</a>
+      </span>
+    
+    
+      <span class="site-header-brand-motto"> | 不如马上出发</span>
+    
+  </div>
+  <div class="site-header-right">
+    <nav class="site-header-navigation">
+      
+        <a href="/" target="_self">首页</a>
+      
+        <a href="/archives/" target="_self">归档</a>
+      
+    </nav>
+    <div class="site-header-btn">
+      
+        <a href="https://github.com/abcdexx/" target="_blank" id="site-github">
+          <i class="fa fa-github-alt"></i>
+        </a>
+      
+      <a href="javascript:void(0);" id="site-search">
+        <i class="fa fa-search"></i>
+      </a>
+      <a href="javascript:void(0);" id="site-nav-btn">
+        <i class="fa fa-ellipsis-v"></i>
+      </a>
+    </div>
+  </div>
+</header>
+<nav class="table-content" id="site-nav">
+  <div class="table-content-title">
+    <span>导航</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc">
+      
+        <li class="toc-item">
+          <a href="/" target="_self">
+            首页
+          </a>
+        </li>
+      
+        <li class="toc-item">
+          <a href="/archives/" target="_self">
+            归档
+          </a>
+        </li>
+      
+    </ol>
+  </div>
+</nav>
+<div id="site-process"></div>
+    <main>
+      
+  <div class="passage">
+  <div class="passage-meta">
+    <span>
+      <i class="fa fa-calendar"></i>2019-08-21
+    </span>
+    
+    
+      <span>
+        | <i class="fa fa-unlock-alt"></i>UNLOCK
+      </span>
+    
+  </div>
+  <h1 class="passage-title">
+    laravel中简单使用elasticsearch
+  </h1>
+  
+  <article class="passage-article">
+    <h3 id="1-安装"><a href="#1-安装" class="headerlink" title="1.安装"></a>1.安装</h3><p><code>composer require elasticsearch/elasticsearch &lt;可以指定版本号&gt;</code></p>
+<h3 id="2-注册服务"><a href="#2-注册服务" class="headerlink" title="2.注册服务"></a>2.注册服务</h3><p>在<code>app\http\providers\AppServiceProviders</code>下面注册<code>elasticsearch</code>服务，之后就可以在项目中使用<code>app(&#39;es&#39;)</code>来调用<code>elasticsearch</code>服务了。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'es'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 从配置文件读取 Elasticsearch 服务器列表</span></span><br><span class="line">        $builder = ESClientBuilder::create()-&gt;setHosts(config(<span class="string">'database.elasticsearch.hosts'</span>));</span><br><span class="line">        <span class="comment">// 如果是开发环境</span></span><br><span class="line">        <span class="keyword">if</span> (app()-&gt;environment() === <span class="string">'local'</span>) &#123;</span><br><span class="line">            <span class="comment">// 配置日志，Elasticsearch 的请求和返回数据将打印到日志文件中，方便我们调试</span></span><br><span class="line">            $builder-&gt;setLogger(app(<span class="string">'log'</span>)-&gt;driver());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> $builder-&gt;build();</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-数据写入"><a href="#3-数据写入" class="headerlink" title="3.数据写入"></a>3.数据写入</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$es = app(<span class="string">'es'</span>);<span class="comment">//调用es服务</span></span><br><span class="line">$posts = Article::with(<span class="string">'author'</span>)-&gt;limit(<span class="number">100</span>)-&gt;get();<span class="comment">//查询要写入的数据</span></span><br><span class="line">$params = [ </span><br><span class="line">    <span class="string">'index'</span> =&gt; <span class="string">'my_article'</span>,</span><br><span class="line">    <span class="string">'type'</span> =&gt; <span class="string">'my_type'</span>,</span><br><span class="line">    <span class="string">'id'</span> =&gt; <span class="string">'article_id'</span>,</span><br><span class="line">    <span class="string">'body'</span> =&gt; [<span class="string">'article'</span> =&gt; <span class="string">''</span>,<span class="string">'author'</span>=&gt;<span class="string">''</span>]</span><br><span class="line">];</span><br><span class="line">$es-&gt;index($params);<span class="comment">//添加索引</span></span><br><span class="line">$arr = [<span class="string">'body'</span>=&gt;[]];</span><br><span class="line"><span class="keyword">foreach</span> ($posts <span class="keyword">as</span> $k=&gt;$v)&#123; <span class="comment">//组合数据</span></span><br><span class="line">    $arr[<span class="string">'body'</span>][] = [</span><br><span class="line">        <span class="string">'index'</span>=&gt;[</span><br><span class="line">            <span class="string">'_index'</span> =&gt; <span class="string">'my_article'</span>,</span><br><span class="line">            <span class="string">'_type'</span> =&gt; <span class="string">'my_type'</span>,</span><br><span class="line">            <span class="string">'_id'</span> =&gt; $v[<span class="string">'id'</span>],</span><br><span class="line">        ]</span><br><span class="line">    ];</span><br><span class="line">    $arr[<span class="string">'body'</span>][] = [<span class="string">'article'</span> =&gt; $v[<span class="string">'article_name'</span>],<span class="string">'author'</span>=&gt;$v-&gt;author-&gt;name];</span><br><span class="line">&#125;</span><br><span class="line">$es-&gt;bulk($arr);<span class="comment">//批量写入</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-查询数据"><a href="#4-查询数据" class="headerlink" title="4.查询数据"></a>4.查询数据</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$params = [</span><br><span class="line">        <span class="string">'index'</span> =&gt; <span class="string">'my_article'</span>,<span class="comment">//指定索引（就是mysql中的数据库）</span></span><br><span class="line">        <span class="string">'type'</span> =&gt; <span class="string">'my_type'</span>,<span class="comment">//指定类型（就是mysql中的表）</span></span><br><span class="line">        <span class="string">'body'</span> =&gt; [ <span class="comment">//需要查询的数据</span></span><br><span class="line">            <span class="string">'query'</span> =&gt; [</span><br><span class="line">                <span class="string">'match'</span> =&gt; [</span><br><span class="line">                    <span class="string">'author'</span> =&gt; <span class="string">'鲁华'</span>  <span class="comment">//查询作者是鲁华的文章</span></span><br><span class="line">                ]</span><br><span class="line">            ]</span><br><span class="line">        ]</span><br><span class="line">    ];</span><br><span class="line">    $response = app(<span class="string">'es'</span>)-&gt;search($params);</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'&lt;pre&gt;'</span>;</span><br><span class="line">    print_r($response);</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-结果"><a href="#5-结果" class="headerlink" title="5.结果"></a>5.结果</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [took] =&gt; <span class="number">1</span></span><br><span class="line">    [timed_out] =&gt; </span><br><span class="line">    [_shards] =&gt; <span class="keyword">Array</span></span><br><span class="line">        (</span><br><span class="line">            [total] =&gt; <span class="number">1</span></span><br><span class="line">            [successful] =&gt; <span class="number">1</span></span><br><span class="line">            [skipped] =&gt; <span class="number">0</span></span><br><span class="line">            [failed] =&gt; <span class="number">0</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    [hits] =&gt; <span class="keyword">Array</span></span><br><span class="line">        (</span><br><span class="line">            [total] =&gt; <span class="keyword">Array</span></span><br><span class="line">                (</span><br><span class="line">                    [value] =&gt; <span class="number">22</span></span><br><span class="line">                    [relation] =&gt; eq</span><br><span class="line">                )</span><br><span class="line"></span><br><span class="line">            [max_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">            [hits] =&gt; <span class="keyword">Array</span></span><br><span class="line">                (</span><br><span class="line">                    [<span class="number">0</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">11</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; doloremque</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">1</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">37</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; accusantium</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">2</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">55</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; aperiam</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">3</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">60</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; debitis</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">4</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">66</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; rem</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">5</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">69</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; molestias</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">6</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">82</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; error</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">7</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">91</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; blanditiis</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                    [<span class="number">8</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">                        (</span><br><span class="line">                            [_index] =&gt; my_article</span><br><span class="line">                            [_type] =&gt; my_type</span><br><span class="line">                            [_id] =&gt; <span class="number">92</span></span><br><span class="line">                            [_score] =&gt; <span class="number">1.6259878</span></span><br><span class="line">                            [_source] =&gt; <span class="keyword">Array</span></span><br><span class="line">                                (</span><br><span class="line">                                    [article] =&gt; magni</span><br><span class="line">                                    [author] =&gt; 鲁华</span><br><span class="line">                                )</span><br><span class="line"></span><br><span class="line">                        )</span><br><span class="line"></span><br><span class="line">                )</span><br><span class="line"></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-删除一个索引"><a href="#6-删除一个索引" class="headerlink" title="6.删除一个索引"></a>6.删除一个索引</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$deleteParams = [</span><br><span class="line">    <span class="string">'index'</span> =&gt; <span class="string">'my_index'</span></span><br><span class="line">];</span><br><span class="line">$response = $client-&gt;indices()-&gt;delete($deleteParams);</span><br><span class="line">print_r($response);</span><br></pre></td></tr></table></figure>
+  </article>
+  <aside class="table-content" id="site-toc">
+  <div class="table-content-title">
+    <i class="fa fa-arrow-right fa-lg" id="site-toc-hide-btn"></i>
+    <span>目录</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-安装"><span class="toc-text">1.安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-注册服务"><span class="toc-text">2.注册服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-数据写入"><span class="toc-text">3.数据写入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-查询数据"><span class="toc-text">4.查询数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-结果"><span class="toc-text">5.结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-删除一个索引"><span class="toc-text">6.删除一个索引</span></a></li></ol>
+  </div>
+</aside>
+  
+    <aside class="passage-copyright">
+      <div>本文作者: 覃涛</div>
+      
+        <div>
+          原文链接: 
+          <a href="" target="_blank">http://abcdexx.github.io/2019/08/21/Api/</a>
+        </div>
+      
+      <div>
+        版权声明: 本博客所有文章除特别声明外, 均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议. 转载请注明出处!
+      </div>
+    </aside>
+  
+  
+</div>
+
+    </main>
+    
+      
+<div class="site-comment-contanier" data-plateform="leancloud">
+  
+    <p id="site-comment-info">
+      <i class="fa fa-spinner fa-spin"></i> 评论加载中
+    </p>
+    <div id="site-comment"></div>
+  
+</div>
+    
+    <div class="site-footer-wrapper">
+  <footer class="site-footer">
+    
+      
+        <div class="site-footer-col">
+          <h5 class="site-footer-title">博客推荐</h5>
+          
+            <span class="site-footer-item">
+              <a href="https://learnku.com/laravel" target="_blank">Laravel-china</a>
+            </span>
+          
+            <span class="site-footer-item">
+              <a href="http://ruanyifeng.com/" target="_blank">阮一峰的个人网站</a>
+            </span>
+          
+        </div>
+      
+    
+    <div class="site-footer-info">
+      <i class="fa fa-clock-o"></i> 本站已稳定运行<span id="site-time"></span>
+    </div>
+    
+      <div class="site-footer-info">
+        <i class="fa fa-paw"></i> 您是本站第 <span id="site-count"></span> 位访客
+      </div>
+    
+    
+      <div class="site-footer-info">
+        <i class="fa fa-at"></i> Email: abcdexx867789@gmail.com
+      </div>
+    
+    <div class="site-footer-info">
+      <i class="fa fa-copyright"></i> 
+      2019 <a href="https://github.com/dongyuanxin/theme-ad/" target="_blank">Theme-AD</a>.
+      Created by <a href="https://godbmw.com/" target="_blank">GodBMW</a>.
+      All rights reserved.
+    </div>
+  </footer>
+</div>
+    <div id="site-layer" style="display:none;">
+  <div class="site-layer-content">
+    <div class="site-layer-header">
+      <span class="site-layer-header-title" id="site-layer-title"></span>
+      <i class="fa fa-close" id="site-layer-close"></i>
+    </div>
+    <div class="site-layer-body" id="site-layer-container">
+      <div class="site-layer-input" id="site-layer-search" style="display: none;">
+        <div class="site-layer-input-choose">
+          <a href="javascript:void(0);" title="Change Search Engine">Google</a>
+        </div>
+        <input type="text">
+        <i class="fa fa-search"></i>
+      </div>
+      
+        <div class="site-layer-reward" id="site-layer-reward" style="display: none;">
+          
+            <div>
+              <img src="/images/wechat.png" alt="WeChat">
+              
+                <p>WeChat</p>
+              
+            </div>
+          
+            <div>
+              <img src="/images/alipay.png" alt="AliPay">
+              
+                <p>AliPay</p>
+              
+            </div>
+          
+        </div>
+      
+      <div id="site-layer-welcome" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+    
+
+<div class="bottom-bar">
+  <div class="bottom-bar-left">
+    <a href="/2019/08/22/swoole-process实现多进程/" data-enable="true">
+      <i class="fa fa-arrow-left"></i>
+    </a>
+    <a href="/2019/08/02/box/" data-enable="true">
+      <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+  <div class="bottom-bar-right">
+    <a href="javascript:void(0);" data-enable="true" id="site-toc-show-btn">
+      <i class="fa fa-bars"></i>
+    </a>
+    
+      <a href="#site-comment" data-enable="true">
+        <i class="fa fa-commenting"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="site-toggle-share-btn">
+      <i class="fa fa-share-alt"></i>
+    </a>
+    
+      <a href="javascript:void(0);" id="site-reward">
+        <i class="fa fa-thumbs-up"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="back-top-btn">
+      <i class="fa fa-chevron-up"></i>
+    </a>
+  </div>
+</div>
+    <div id="share-btn">
+  
+    <a id="share-btn-twitter" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-twitter"></i>
+    </a>
+  
+  
+    <a id="share-btn-facebook" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-facebook"></i>
+    </a>
+  
+  
+    <a id="share-btn-weibo" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-weibo"></i>
+    </a>
+  
+  
+    <a id="share-btn-qq" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-qq"></i>
+    </a>
+  
+  
+    <a id="share-btn-wechat" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-wechat"></i>
+    </a>
+  
+</div>
+    
+
+
+
+
+
+    
+  </body>
+</html>

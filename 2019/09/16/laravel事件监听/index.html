@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+  
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  <meta name="author" content="qt">
+  
+  
+  <title>laravel事件监听 | 覃涛的个人博客</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Hexo, Theme-AD">
+  
+
+  
+  <meta name="description" content="覃涛的小站">
+
+  
+
+  
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@3.11.1/dist/av-min.js" async></script>
+  
+
+  
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+  
+
+  
+    <script src="//unpkg.com/valine/dist/Valine.min.js" async></script>
+  
+
+  
+
+  <script>
+  // theme-ad's config script
+  // it can be used in every script
+  
+  window.AD_CONFIG = {
+    leancloud: {"appid":"RSGSDX6mpy0tovY7FcfRbPB5-gzGzoHsz","appkey":"cB66y8LSjGdHvLNmRBxmaiC4","comment":true,"count":true},
+    welcome: {"enable":false,"interval":30},
+    start_time: "2018-02-10",
+    passwords: ["efe07af7441da2b69c4a41e42e73be4db47f66010a56900788a458354a7373ec", ],
+    is_post: true,
+    lock: false,
+    author: "qt",
+    share: {"twitter":true,"facebook":true,"weibo":true,"qq":true,"wechat":true},
+    mathjax: true,
+    page_type: "",
+    root: "/"
+  };
+</script>
+
+  <script src="/vendor/sha256.min.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/index.js"></script>
+<script src="/vendor/qrcode.min.js"></script>
+
+  
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="/images/touch-icon.png">
+  
+
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/index.css">
+<link rel="stylesheet" href="/styles/components/highlight/highlight.css">
+
+  
+</head>
+  <body>
+    <header class="site-header">
+  <div class="site-header-brand">
+    
+      <span class="site-header-brand-title">
+        <a href="/">与其感慨路难行</a>
+      </span>
+    
+    
+      <span class="site-header-brand-motto"> | 不如马上出发</span>
+    
+  </div>
+  <div class="site-header-right">
+    <nav class="site-header-navigation">
+      
+        <a href="/" target="_self">首页</a>
+      
+        <a href="/archives/" target="_self">归档</a>
+      
+    </nav>
+    <div class="site-header-btn">
+      
+        <a href="https://github.com/abcdexx/" target="_blank" id="site-github">
+          <i class="fa fa-github-alt"></i>
+        </a>
+      
+      <a href="javascript:void(0);" id="site-search">
+        <i class="fa fa-search"></i>
+      </a>
+      <a href="javascript:void(0);" id="site-nav-btn">
+        <i class="fa fa-ellipsis-v"></i>
+      </a>
+    </div>
+  </div>
+</header>
+<nav class="table-content" id="site-nav">
+  <div class="table-content-title">
+    <span>导航</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc">
+      
+        <li class="toc-item">
+          <a href="/" target="_self">
+            首页
+          </a>
+        </li>
+      
+        <li class="toc-item">
+          <a href="/archives/" target="_self">
+            归档
+          </a>
+        </li>
+      
+    </ol>
+  </div>
+</nav>
+<div id="site-process"></div>
+    <main>
+      
+  <div class="passage">
+  <div class="passage-meta">
+    <span>
+      <i class="fa fa-calendar"></i>2019-09-16
+    </span>
+    
+    
+      <span>
+        | <i class="fa fa-unlock-alt"></i>UNLOCK
+      </span>
+    
+  </div>
+  <h1 class="passage-title">
+    laravel事件监听
+  </h1>
+  
+  <article class="passage-article">
+    <h1 id="1-注册事件和事件监听器"><a href="#1-注册事件和事件监听器" class="headerlink" title="1.注册事件和事件监听器"></a>1.注册事件和事件监听器</h1><blockquote>
+<p>在 <code>app\Providers\EventServiceProvider.php</code>的<code>$listen</code>数组中中注册事件和事件监听器</p>
+</blockquote>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">protected $listen = [</span><br><span class="line">      Registered::class =&gt; [ </span><br><span class="line">          SendEmailVerificationNotification::class,</span><br><span class="line">      ],</span><br><span class="line">      &apos;App\Events\ArticleViewEvent&apos; =&gt; [</span><br><span class="line">          &apos;App\Listeners\ArticleViewListener&apos;,</span><br><span class="line">      ],</span><br><span class="line">  ];</span><br></pre></td></tr></table></figure>
+
+<h1 id="2-生成事件-和-事件监听器"><a href="#2-生成事件-和-事件监听器" class="headerlink" title="2.生成事件 和 事件监听器"></a>2.生成事件 和 事件监听器</h1><blockquote>
+<p>而在这里，你只需要将监听器和事件添加到 <code>EventServiceProvider</code> 中，而后使用 <code>event:generate</code> 命令。这个命令会生成在 <code>EventServiceProvider</code> 中列出的所有事件和监听器。当然，已经存在的事件和监听器将保持不变。<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php artisan event:generate</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h1 id="3-定义事件"><a href="#3-定义事件" class="headerlink" title="3.定义事件"></a>3.定义事件</h1> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"> &lt;?php</span><br><span class="line"></span><br><span class="line">namespace App\Events;</span><br><span class="line"></span><br><span class="line">use Illuminate\Broadcasting\Channel;</span><br><span class="line">use Illuminate\Queue\SerializesModels;</span><br><span class="line">use Illuminate\Broadcasting\PrivateChannel;</span><br><span class="line">use Illuminate\Broadcasting\PresenceChannel;</span><br><span class="line">use Illuminate\Foundation\Events\Dispatchable;</span><br><span class="line">use Illuminate\Broadcasting\InteractsWithSockets;</span><br><span class="line">use Illuminate\Contracts\Broadcasting\ShouldBroadcast;</span><br><span class="line">use App\Models\Article;</span><br><span class="line"></span><br><span class="line">class ArticleViewEvent</span><br><span class="line">&#123;</span><br><span class="line">	use Dispatchable, InteractsWithSockets, SerializesModels;</span><br><span class="line"></span><br><span class="line">	public $article;</span><br><span class="line">	/**</span><br><span class="line">	 * Create a new event instance.</span><br><span class="line">	 *</span><br><span class="line">	 * [[@return](https://learnku.com/users/31554)](https://learnku.com/users/31554) void</span><br><span class="line">	 */</span><br><span class="line">	public function __construct(Article $article)</span><br><span class="line">	&#123;</span><br><span class="line">		$this-&gt;article = $article;</span><br><span class="line">		//</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	/**</span><br><span class="line">	 * Get the channels the event should broadcast on.</span><br><span class="line">	 *</span><br><span class="line">	 * [[@return](https://learnku.com/users/31554)](https://learnku.com/users/31554) \Illuminate\Broadcasting\Channel|array</span><br><span class="line">	 */</span><br><span class="line">	public function broadcastOn()</span><br><span class="line">	&#123;</span><br><span class="line">		return new PrivateChannel(&apos;channel-name&apos;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="4-定义监听器"><a href="#4-定义监听器" class="headerlink" title="4.定义监听器"></a>4.定义监听器</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"> &lt;?php</span><br><span class="line"></span><br><span class="line">namespace App\Listeners;</span><br><span class="line"></span><br><span class="line">use App\Events\ArticleViewEvent;</span><br><span class="line">use Illuminate\Queue\InteractsWithQueue;</span><br><span class="line">use Illuminate\Contracts\Queue\ShouldQueue;</span><br><span class="line"></span><br><span class="line">class ArticleViewListener</span><br><span class="line">&#123;</span><br><span class="line">	/**</span><br><span class="line">	 * Create the event listener.</span><br><span class="line">	 *</span><br><span class="line">	 * [[@return](https://learnku.com/users/31554)](https://learnku.com/users/31554) void</span><br><span class="line">	 */</span><br><span class="line">	public function __construct(ArticleViewEvent $event)</span><br><span class="line">	&#123;</span><br><span class="line">		//</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	/**</span><br><span class="line">	 * Handle the event.</span><br><span class="line">	 *</span><br><span class="line">	 * @param  ArticleViewEvent  $event</span><br><span class="line">	 * [[@return](https://learnku.com/users/31554)](https://learnku.com/users/31554) void</span><br><span class="line">	 */</span><br><span class="line">	public function handle(ArticleViewEvent $event)</span><br><span class="line">	&#123;</span><br><span class="line">		$article = $event-&gt;article;</span><br><span class="line">		$article-&gt;number = $article-&gt;number + 1;</span><br><span class="line">		$article-&gt;save();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="5-事件调用"><a href="#5-事件调用" class="headerlink" title="5.事件调用"></a>5.事件调用</h1> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"> &lt;?php</span><br><span class="line"></span><br><span class="line">namespace App\Http\Controllers;</span><br><span class="line"></span><br><span class="line">use App\Models\Article;</span><br><span class="line">use App\Models\Author;</span><br><span class="line">use Illuminate\Http\Request;</span><br><span class="line">use Illuminate\Support\Arr;</span><br><span class="line">use Mail;</span><br><span class="line">use Illuminate\Support\Facades\DB;</span><br><span class="line">use App\Events\ArticleViewEvent;</span><br><span class="line">use Event;</span><br><span class="line">class IndexController extends Controller</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	public function index(Article $article)&#123;</span><br><span class="line">		$post = Article::find(1);</span><br><span class="line">		event(new ArticleViewEvent($post));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+  </article>
+  <aside class="table-content" id="site-toc">
+  <div class="table-content-title">
+    <i class="fa fa-arrow-right fa-lg" id="site-toc-hide-btn"></i>
+    <span>目录</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-注册事件和事件监听器"><span class="toc-text">1.注册事件和事件监听器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-生成事件-和-事件监听器"><span class="toc-text">2.生成事件 和 事件监听器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-定义事件"><span class="toc-text">3.定义事件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-定义监听器"><span class="toc-text">4.定义监听器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-事件调用"><span class="toc-text">5.事件调用</span></a></li></ol>
+  </div>
+</aside>
+  
+    <aside class="passage-copyright">
+      <div>本文作者: 覃涛</div>
+      
+        <div>
+          原文链接: 
+          <a href="" target="_blank">http://abcdexx.github.io/2019/09/16/laravel事件监听/</a>
+        </div>
+      
+      <div>
+        版权声明: 本博客所有文章除特别声明外, 均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议. 转载请注明出处!
+      </div>
+    </aside>
+  
+  
+</div>
+
+    </main>
+    
+      
+<div class="site-comment-contanier" data-plateform="leancloud">
+  
+    <p id="site-comment-info">
+      <i class="fa fa-spinner fa-spin"></i> 评论加载中
+    </p>
+    <div id="site-comment"></div>
+  
+</div>
+    
+    <div class="site-footer-wrapper">
+  <footer class="site-footer">
+    
+      
+        <div class="site-footer-col">
+          <h5 class="site-footer-title">博客推荐</h5>
+          
+            <span class="site-footer-item">
+              <a href="https://learnku.com/laravel" target="_blank">Laravel-china</a>
+            </span>
+          
+            <span class="site-footer-item">
+              <a href="http://ruanyifeng.com/" target="_blank">阮一峰的个人网站</a>
+            </span>
+          
+        </div>
+      
+    
+    <div class="site-footer-info">
+      <i class="fa fa-clock-o"></i> 本站已稳定运行<span id="site-time"></span>
+    </div>
+    
+      <div class="site-footer-info">
+        <i class="fa fa-paw"></i> 您是本站第 <span id="site-count"></span> 位访客
+      </div>
+    
+    
+      <div class="site-footer-info">
+        <i class="fa fa-at"></i> Email: abcdexx867789@gmail.com
+      </div>
+    
+    <div class="site-footer-info">
+      <i class="fa fa-copyright"></i> 
+      2019 <a href="https://github.com/dongyuanxin/theme-ad/" target="_blank">Theme-AD</a>.
+      Created by <a href="https://godbmw.com/" target="_blank">GodBMW</a>.
+      All rights reserved.
+    </div>
+  </footer>
+</div>
+    <div id="site-layer" style="display:none;">
+  <div class="site-layer-content">
+    <div class="site-layer-header">
+      <span class="site-layer-header-title" id="site-layer-title"></span>
+      <i class="fa fa-close" id="site-layer-close"></i>
+    </div>
+    <div class="site-layer-body" id="site-layer-container">
+      <div class="site-layer-input" id="site-layer-search" style="display: none;">
+        <div class="site-layer-input-choose">
+          <a href="javascript:void(0);" title="Change Search Engine">Google</a>
+        </div>
+        <input type="text">
+        <i class="fa fa-search"></i>
+      </div>
+      
+        <div class="site-layer-reward" id="site-layer-reward" style="display: none;">
+          
+            <div>
+              <img src="/images/wechat.png" alt="WeChat">
+              
+                <p>WeChat</p>
+              
+            </div>
+          
+            <div>
+              <img src="/images/alipay.png" alt="AliPay">
+              
+                <p>AliPay</p>
+              
+            </div>
+          
+        </div>
+      
+      <div id="site-layer-welcome" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+    
+
+<div class="bottom-bar">
+  <div class="bottom-bar-left">
+    <a href="/2019/10/28/二分查找法/" data-enable="true">
+      <i class="fa fa-arrow-left"></i>
+    </a>
+    <a href="/2019/08/24/mysql主从复制/" data-enable="true">
+      <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+  <div class="bottom-bar-right">
+    <a href="javascript:void(0);" data-enable="true" id="site-toc-show-btn">
+      <i class="fa fa-bars"></i>
+    </a>
+    
+      <a href="#site-comment" data-enable="true">
+        <i class="fa fa-commenting"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="site-toggle-share-btn">
+      <i class="fa fa-share-alt"></i>
+    </a>
+    
+      <a href="javascript:void(0);" id="site-reward">
+        <i class="fa fa-thumbs-up"></i>
+      </a>
+    
+    <a href="javascript:void(0);" id="back-top-btn">
+      <i class="fa fa-chevron-up"></i>
+    </a>
+  </div>
+</div>
+    <div id="share-btn">
+  
+    <a id="share-btn-twitter" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-twitter"></i>
+    </a>
+  
+  
+    <a id="share-btn-facebook" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-facebook"></i>
+    </a>
+  
+  
+    <a id="share-btn-weibo" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-weibo"></i>
+    </a>
+  
+  
+    <a id="share-btn-qq" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-qq"></i>
+    </a>
+  
+  
+    <a id="share-btn-wechat" href="javascript:void(0);" target="_blank">
+      <i class="fa fa-wechat"></i>
+    </a>
+  
+</div>
+    
+
+
+
+
+
+    
+  </body>
+</html>

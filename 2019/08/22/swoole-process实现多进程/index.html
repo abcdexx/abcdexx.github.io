@@ -6,7 +6,7 @@
   <meta name="author" content="qt">
   
   
-  <title>归档: 2019/6 | 覃涛的个人博客</title>
+  <title>swoole_process实现多进程 | 覃涛的个人博客</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -42,7 +42,7 @@
     welcome: {"enable":false,"interval":30},
     start_time: "2018-02-10",
     passwords: ["efe07af7441da2b69c4a41e42e73be4db47f66010a56900788a458354a7373ec", ],
-    is_post: false,
+    is_post: true,
     lock: false,
     author: "qt",
     share: {"twitter":true,"facebook":true,"weibo":true,"qq":true,"wechat":true},
@@ -128,19 +128,66 @@
 </nav>
 <div id="site-process"></div>
     <main>
-      <div class="timeline">
-  <h2 class="timeline-title">归档: 8篇</h2>
+      
+  <div class="passage">
+  <div class="passage-meta">
+    <span>
+      <i class="fa fa-calendar"></i>2019-08-22
+    </span>
+    
+    
+      <span>
+        | <i class="fa fa-unlock-alt"></i>UNLOCK
+      </span>
+    
+  </div>
+  <h1 class="passage-title">
+    swoole_process实现多进程
+  </h1>
   
-    
-      <h3 class="timeline-subtitle">2019</h3>
-    
-    <div class="timeline-item">
-      <time>2019-06-19</time>
-      <a target="_self" href="/2019/06/19/处理前后端分离的跨域问题/">Laravel处理前后端分离的跨域问题</a>
-    </div>
+  <article class="passage-article">
+    <h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">date_default_timezone_set(<span class="string">'PRC'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="string">"start_time==&gt;"</span>. date(<span class="string">"Y-m-d H:i:s"</span>).PHP_EOL;</span><br><span class="line">$urls = [</span><br><span class="line">   <span class="string">"http://www.baidu.com"</span>,</span><br><span class="line">   <span class="string">"http://www.qq.com"</span>,</span><br><span class="line">   <span class="string">"http://www.tx.com"</span>,</span><br><span class="line">   <span class="string">"http://www.sina.com"</span>,</span><br><span class="line">   <span class="string">"http://www.ali.com"</span>,</span><br><span class="line">   <span class="string">"http://www.wechat.com"</span></span><br><span class="line"></span><br><span class="line">];</span><br><span class="line">$workids = [];</span><br><span class="line"><span class="keyword">for</span> ($i=<span class="number">0</span>;$i&lt;count($urls);$i++)&#123;</span><br><span class="line">    $process = <span class="keyword">new</span> swoole_process(<span class="function"><span class="keyword">function</span> <span class="params">(swoole_process $worker)</span> <span class="title">use</span><span class="params">($i,$urls)</span></span>&#123;</span><br><span class="line">         $content = curldata($urls[$i]);</span><br><span class="line">         <span class="keyword">echo</span> $content.PHP_EOL;</span><br><span class="line">    &#125;,<span class="keyword">true</span>);</span><br><span class="line">    $pid = $process-&gt;start(); <span class="comment">//启动子进程</span></span><br><span class="line">    $workids[$pid] = $process; <span class="comment">//存入管道</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> ($workids <span class="keyword">as</span> $process)&#123;</span><br><span class="line">    <span class="keyword">echo</span> $process-&gt;read();<span class="comment">//读取管道里面的信息</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">curldata</span><span class="params">($i)</span></span>&#123;</span><br><span class="line">    sleep(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> $i.<span class="string">"====&gt;curl_success"</span>.PHP_EOL;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"end_time==&gt;"</span>. date(<span class="string">"Y-m-d H:i:s"</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="结果显示只用了两秒"><a href="#结果显示只用了两秒" class="headerlink" title="结果显示只用了两秒"></a>结果显示只用了两秒</h3><p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/QQ%E6%88%AA%E5%9B%BE20190822101432.png" alt></p>
+
+  </article>
+  <aside class="table-content" id="site-toc">
+  <div class="table-content-title">
+    <i class="fa fa-arrow-right fa-lg" id="site-toc-hide-btn"></i>
+    <span>目录</span>
+  </div>
+  <div class="table-content-main">
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码实现"><span class="toc-text">代码实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结果显示只用了两秒"><span class="toc-text">结果显示只用了两秒</span></a></li></ol>
+  </div>
+</aside>
+  
+    <aside class="passage-copyright">
+      <div>本文作者: 覃涛</div>
+      
+        <div>
+          原文链接: 
+          <a href="" target="_blank">http://abcdexx.github.io/2019/08/22/swoole-process实现多进程/</a>
+        </div>
+      
+      <div>
+        版权声明: 本博客所有文章除特别声明外, 均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议. 转载请注明出处!
+      </div>
+    </aside>
+  
   
 </div>
+
     </main>
+    
+      
+<div class="site-comment-contanier" data-plateform="leancloud">
+  
+    <p id="site-comment-info">
+      <i class="fa fa-spinner fa-spin"></i> 评论加载中
+    </p>
+    <div id="site-comment"></div>
+  
+</div>
     
     <div class="site-footer-wrapper">
   <footer class="site-footer">
@@ -222,19 +269,19 @@
 
 <div class="bottom-bar">
   <div class="bottom-bar-left">
-    <a href="javascript:void(0);" data-enable="false">
+    <a href="/2019/08/24/mysql主从复制/" data-enable="true">
       <i class="fa fa-arrow-left"></i>
     </a>
-    <a href="javascript:void(0);" data-enable="false">
+    <a href="/2019/08/21/Api/" data-enable="true">
       <i class="fa fa-arrow-right"></i>
     </a>
   </div>
   <div class="bottom-bar-right">
-    <a href="javascript:void(0);" data-enable="false" id="site-toc-show-btn">
+    <a href="javascript:void(0);" data-enable="true" id="site-toc-show-btn">
       <i class="fa fa-bars"></i>
     </a>
     
-      <a href="javascript:void(0);" data-enable="false">
+      <a href="#site-comment" data-enable="true">
         <i class="fa fa-commenting"></i>
       </a>
     
