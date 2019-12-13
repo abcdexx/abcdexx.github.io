@@ -6,7 +6,7 @@
   <meta name="author" content="qt">
   
   
-  <title>swoole_process实现多进程 | 覃涛的个人博客</title>
+  <title>图解mysql表连接 | 覃涛的个人博客</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -132,7 +132,7 @@
   <div class="passage">
   <div class="passage-meta">
     <span>
-      <i class="fa fa-calendar"></i>2019-08-22
+      <i class="fa fa-calendar"></i>2019-12-10
     </span>
     
     
@@ -142,13 +142,41 @@
     
   </div>
   <h1 class="passage-title">
-    swoole_process实现多进程
+    图解mysql表连接
   </h1>
   
   <article class="passage-article">
-    <h3 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">date_default_timezone_set(<span class="string">'PRC'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="string">"start_time==&gt;"</span>. date(<span class="string">"Y-m-d H:i:s"</span>).PHP_EOL;</span><br><span class="line">$urls = [</span><br><span class="line">   <span class="string">"http://www.baidu.com"</span>,</span><br><span class="line">   <span class="string">"http://www.qq.com"</span>,</span><br><span class="line">   <span class="string">"http://www.tx.com"</span>,</span><br><span class="line">   <span class="string">"http://www.sina.com"</span>,</span><br><span class="line">   <span class="string">"http://www.ali.com"</span>,</span><br><span class="line">   <span class="string">"http://www.wechat.com"</span></span><br><span class="line"></span><br><span class="line">];</span><br><span class="line">$workids = [];</span><br><span class="line"><span class="keyword">for</span> ($i=<span class="number">0</span>;$i&lt;count($urls);$i++)&#123;</span><br><span class="line">    $process = <span class="keyword">new</span> swoole_process(<span class="function"><span class="keyword">function</span> <span class="params">(swoole_process $worker)</span> <span class="title">use</span><span class="params">($i,$urls)</span></span>&#123;</span><br><span class="line">         $content = curldata($urls[$i]);</span><br><span class="line">         <span class="keyword">echo</span> $content.PHP_EOL;</span><br><span class="line">    &#125;,<span class="keyword">true</span>);</span><br><span class="line">    $pid = $process-&gt;start(); <span class="comment">//启动子进程</span></span><br><span class="line">    $workids[$pid] = $process; <span class="comment">//存入管道</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span> ($workids <span class="keyword">as</span> $process)&#123;</span><br><span class="line">    <span class="keyword">echo</span> $process-&gt;read();<span class="comment">//读取管道里面的信息</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">curldata</span><span class="params">($i)</span></span>&#123;</span><br><span class="line">    sleep(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">return</span> $i.<span class="string">"====&gt;curl_success"</span>.PHP_EOL;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"end_time==&gt;"</span>. date(<span class="string">"Y-m-d H:i:s"</span>);</span><br></pre></td></tr></table></figure>
+    <p>关系型数据库最难的地方，就是建模（model）。</p>
+<p>错综复杂的数据，需要建立模型，才能储存在数据库。所谓”模型”就是两样东西：实体（entity）+ 关系（relationship）。</p>
+<p>实体指的是那些实际的对象，带有自己的属性，可以理解成一组相关属性的容器。关系就是实体之间的联系，通常可以分成”一对一”、”一对多”和”多对多”等类型。</p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143019_89640.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p>在关系型数据库里面，每个实体有自己的一张表（table），所有属性都是这张表的字段（field），表与表之间根据关联字段”连接”（join）在一起。所以，表的连接是关系型数据库的核心问题。</p>
+<p>表的连接分成好几种类型。</p>
+<p>1、内连接（inner join）<br>2、外连接（outer join）<br>3、左连接（left join）<br>4、右连接（right join）<br>5、全连接（full join）</p>
+<p>以前，很多文章采用维恩图（两个圆的集合运算），解释不同连接的差异。</p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143116_38035.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143116_81669.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143116_12777.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143116_29841.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p>上周，我读到一篇文章，认为还有比维恩图更好的解释方式。我发现确实如此，换一个角度解释，更容易懂。</p>
+<p>所谓”连接”，就是两张表根据关联字段，组合成一个数据集。问题是，两张表的关联字段的值往往是不一致的，如果关联字段不匹配，怎么处理？比如，表 A 包含张三和李四，表 B 包含李四和王五，匹配的只有李四这一条记录。</p>
+<p>很容易看出，一共有四种处理方法。</p>
+<p>1、只返回两张表匹配的记录，这叫内连接（inner join）。<br>2、返回匹配的记录，以及表 A 多余的记录，这叫左连接（left join）。<br>3、返回匹配的记录，以及表 B 多余的记录，这叫右连接（right join）。<br>4、返回匹配的记录，以及表 A 和表 B 各自的多余记录，这叫全连接（full join）。</p>
+<p>下图就是四种连接的图示。我觉得，这张图比维恩图更易懂，也更准确。</p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143248_21815.jpg" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
+<p>上图中，表 A 的记录是 123，表 B 的记录是 ABC，颜色表示匹配关系。返回结果中，如果另一张表没有匹配的记录，则用 null 填充。</p>
+<p>这四种连接，又可以分成两大类：内连接（inner join）表示只包含匹配的记录，外连接（outer join）表示还包含不匹配的记录。所以，左连接、右连接、全连接都属于外连接。</p>
+<p>这四种连接的 SQL 语句如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM A</span><br><span class="line">INNER JOIN B ON A.book_id=B.book_id;</span><br><span class="line"></span><br><span class="line">SELECT * FROM A</span><br><span class="line">LEFT JOIN B ON A.book_id=B.book_id;</span><br><span class="line"></span><br><span class="line">SELECT * FROM A</span><br><span class="line">RIGHT JOIN B ON A.book_id=B.book_id;</span><br><span class="line"></span><br><span class="line">SELECT * FROM A</span><br><span class="line">FULL JOIN B ON A.book_id=B.book_id;</span><br></pre></td></tr></table></figure>
 
-<h3 id="结果显示只用了两秒"><a href="#结果显示只用了两秒" class="headerlink" title="结果显示只用了两秒"></a>结果显示只用了两秒</h3><p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/QQ%E6%88%AA%E5%9B%BE20190822101432.png" alt></p>
+<p>上面的 SQL 语句还可以加上where条件从句，对记录进行筛选，比如只返回表 A 里面不匹配表 B 的记录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM A</span><br><span class="line">LEFT JOIN B</span><br><span class="line">ON A.book_id=B.book_id</span><br><span class="line">WHERE B.id IS null;</span><br></pre></td></tr></table></figure>
+
+<p>另一个例子，返回表 A 或表 B 所有不匹配的记录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM A</span><br><span class="line">FULL JOIN B</span><br><span class="line">ON A.book_id=B.book_id</span><br><span class="line">WHERE A.id IS null OR B.id IS null;</span><br></pre></td></tr></table></figure>
+
+<p>此外，还存在一种特殊的连接，叫做”交叉连接”（cross join），指的是表 A 和表 B 不存在关联字段，这时表 A（共有 n 条记录）与表 B （共有 m 条记录）连接后，会产生一张包含 n x m 条记录的新表（见下图）。</p>
+<p><img src="https://abcdexx.oss-cn-beijing.aliyuncs.com/blog/20190401143415_67937.png" alt="图解数据库表连接，秒懂左连接，右连接，内连接..."></p>
 
   </article>
   <aside class="table-content" id="site-toc">
@@ -157,7 +185,7 @@
     <span>目录</span>
   </div>
   <div class="table-content-main">
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码实现"><span class="toc-text">代码实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结果显示只用了两秒"><span class="toc-text">结果显示只用了两秒</span></a></li></ol>
+    
   </div>
 </aside>
   
@@ -166,7 +194,7 @@
       
         <div>
           原文链接: 
-          <a href="" target="_blank">http://abcdexx.github.io/2019/08/22/swoole-process实现多进程/</a>
+          <a href="" target="_blank">http://abcdexx.github.io/2019/12/10/图解mysql表连接/</a>
         </div>
       
       <div>
@@ -266,10 +294,10 @@
 
 <div class="bottom-bar">
   <div class="bottom-bar-left">
-    <a href="/2019/08/24/mysql主从复制/" data-enable="true">
+    <a href="javascript:void(0);" data-enable="false">
       <i class="fa fa-arrow-left"></i>
     </a>
-    <a href="/2019/08/21/Api/" data-enable="true">
+    <a href="/2019/10/28/二分查找法/" data-enable="true">
       <i class="fa fa-arrow-right"></i>
     </a>
   </div>
